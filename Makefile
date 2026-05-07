@@ -1,4 +1,8 @@
-TARGET     ?= /dev/ttyACM0
+# GDB backend:
+# * bmp (default, Black Magic Probe over serial or native blackmagic executable)
+# * openocd (OpenOCD)
+GDB_BACKEND ?= bmp
+
 IVORYFLAGS ?= --const-fold --verbose
 #IVORYFLAGS ?=
 APPS       :=
@@ -29,12 +33,25 @@ CLEANS     := \
 	$(foreach test,$(TESTS),$(test)-clean) \
 	$(foreach app,$(APPS),$(app)-clean)
 
+ifeq ($(GDB_BACKEND),bmp)
+
+TARGET ?= /dev/ttyACM0
 GDB := arm-none-eabi-gdb \
-		--ex 'target extended-remote $(TARGET)' \
-		--ex 'monitor connect_srst disable' \
-		--ex 'monitor swdp_scan' \
-		--ex 'set mem inaccessible-by-default off' \
-		--ex 'attach 1'
+	--ex 'target extended-remote $(TARGET)' \
+	--ex 'monitor connect_srst disable' \
+	--ex 'monitor swdp_scan' \
+	--ex 'set mem inaccessible-by-default off' \
+	--ex 'attach 1'
+
+else ifeq ($(GDB_BACKEND),openocd)
+
+TARGET ?= localhost:2000
+GDB := arm-none-eabi-gdb \
+	--ex 'target remote $(TARGET)'
+
+else
+$(error Unknown GDB_BACKEND '$(GDB_BACKEND)')
+endif
 
 .PHONY: test clean $(TESTS) $(CLEANS)
 test: $(TESTS)
