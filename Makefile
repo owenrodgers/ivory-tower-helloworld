@@ -19,6 +19,7 @@ TESTS      := \
 	exti-test \
 	i2c-whoami-test \
 	iot01a-test \
+	magnetometer-test \
 	monstick-test \
 	monstick-rn2483-test \
 	nucleo-plc-test \
