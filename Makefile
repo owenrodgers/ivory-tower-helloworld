@@ -73,7 +73,11 @@ $(1)-gdbtui: $(1)
 $(1)-load: $(1)
 	$(GDB) --ex 'load' build/$(1)/image
 $(1)-run: $(1)
+ifeq ($(GDB_BACKEND),bmp)
 	$(GDB) --ex 'load' --ex 'run' build/$(1)/image
+else ifeq ($(GDB_BACKEND),openocd)
+	$(GDB) --ex 'load' --ex 'continue' build/$(1)/image
+endif
 endef
 
 $(foreach test,$(APPS),$(eval $(call MKTEST,$(test))))
