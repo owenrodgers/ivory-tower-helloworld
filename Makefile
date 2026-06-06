@@ -10,7 +10,6 @@ TESTS      := \
 	ads-test \
 	as5047-test \
 	blink-test \
-	bluepill-test \
 	bmp180-test \
 	can2uart-test \
 	cansendrecv-test \

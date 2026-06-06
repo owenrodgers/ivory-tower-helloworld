@@ -15,7 +15,6 @@ library
                        Hello.Tests.ADS
                        Hello.Tests.AS5047
                        Hello.Tests.Blink
-                       Hello.Tests.Bluepill
                        Hello.Tests.BMP180
                        Hello.Tests.CAN2UART
                        Hello.Tests.CANSendRecv
@@ -83,14 +82,6 @@ executable blink-test-gen
   main-is:             Blink.hs
   hs-source-dirs:      test
   build-depends:       base
-                     , ivory-tower-helloworld
-  ghc-options:         -Wall
-
-executable bluepill-test-gen
-  main-is:             Bluepill.hs
-  hs-source-dirs:      test
-  build-depends:       base
-                     , ivory-bsp-stm32
                      , ivory-tower-helloworld
   ghc-options:         -Wall
 
