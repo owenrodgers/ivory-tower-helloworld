@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Hello.Tests.I2CWhoAmI where
+module Hello.Tests.WhoIs6050 where
 
 import Ivory.Language
 import Ivory.Tower
@@ -16,7 +16,6 @@ import Ivory.BSP.STM32.Driver.I2C
 import Ivory.Tower.Base.LED (ledToggle)
 import Hello.Tests.Platforms
 
--- HTS221 default address
 addr :: I2CDeviceAddr
 addr = I2CDeviceAddr 0x68
 
@@ -30,6 +29,7 @@ app tocc toPlatform = do
   togIn <- ledToggle [platformRedLED]
 
   per <- period (Milliseconds 1000)
+
 
   monitor "i2c" $ do
     handler per "i2cPer" $ do

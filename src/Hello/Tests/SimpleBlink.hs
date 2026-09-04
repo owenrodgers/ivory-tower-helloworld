@@ -10,7 +10,7 @@ import Ivory.HW.Module
 import Ivory.BSP.STM32.Peripheral.GPIO
 import Ivory.BSP.STM32.ClockConfig (ClockConfig)
 
-import Hello.Tests.Platforms
+import Hello.Tests.Platforms.Types ( Platform(..) )
 
 -- This artificial Tower program toggles LED when
 -- message arrives on its channel

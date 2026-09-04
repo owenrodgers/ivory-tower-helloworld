@@ -1,7 +1,7 @@
 # GDB backend:
 # * bmp (default, Black Magic Probe over serial or native blackmagic executable)
 # * openocd (OpenOCD)
-GDB_BACKEND ?= bmp
+GDB_BACKEND := openocd
 
 IVORYFLAGS ?= --const-fold --verbose
 #IVORYFLAGS ?=
@@ -28,7 +28,9 @@ TESTS      := \
 	simpleblink-test \
 	uart-test \
 	uart-bridge-test \
-	uart-to-max7219-test
+	uart-to-max7219-test \
+	sk8r-test \
+	whois6050-test \
 
 CLEANS     := \
 	$(foreach test,$(TESTS),$(test)-clean) \
@@ -36,7 +38,7 @@ CLEANS     := \
 
 ifeq ($(GDB_BACKEND),bmp)
 
-TARGET ?= /dev/ttyACM0
+TARGET ?= /dev/cu.usbmodem1403
 GDB := arm-none-eabi-gdb \
 	--ex 'target extended-remote $(TARGET)' \
 	--ex 'monitor connect_srst disable' \

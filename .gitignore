@@ -3,3 +3,6 @@ build
 .history
 .gdb_history
 .ghc.environment*
+.DS_Store
+dist-newstyle
+.vscode

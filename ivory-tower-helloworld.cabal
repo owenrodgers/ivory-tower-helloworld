@@ -46,6 +46,8 @@ library
                        Hello.Tests.UART
                        Hello.Tests.UARTBridge
                        Hello.Tests.UARTToMAX7219
+                       Hello.Tests.Sk8r
+                       Hello.Tests.WhoIs6050
 
   build-depends:       base
                      , ivory
@@ -58,6 +60,7 @@ library
                      , tower-config
                      , tower-hal
                      , tower-freertos-stm32
+                     , ivory-serialize
 
   default-language:    Haskell2010
   ghc-options:         -Wall -Wunused-packages
@@ -224,5 +227,19 @@ executable uart-to-max7219-test-gen
   build-depends:       base
                      , ivory-bsp-stm32
                      , ivory-tower-drivers
+                     , ivory-tower-helloworld
+  ghc-options:         -Wall
+
+executable sk8r-test-gen
+  main-is:             sk8r.hs
+  hs-source-dirs:      test
+  build-depends:       base
+                     , ivory-tower-helloworld
+  ghc-options:         -Wall
+
+executable whois6050-test-gen
+  main-is:             whoIs6050.hs
+  hs-source-dirs:      test
+  build-depends:       base
                      , ivory-tower-helloworld
   ghc-options:         -Wall
