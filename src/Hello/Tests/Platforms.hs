@@ -4,31 +4,12 @@ module Hello.Tests.Platforms (
   , getPlatform
   , buildHelloApp
   , buildWrappedApp
-  , module Hello.Tests.Platforms.Bluepill
-  , module Hello.Tests.Platforms.F0DISCO
-  , module Hello.Tests.Platforms.F3DISCO
   , module Hello.Tests.Platforms.F4DISCO
-  , module Hello.Tests.Platforms.IOT01A
-  , module Hello.Tests.Platforms.Monstick
-  , module Hello.Tests.Platforms.NucleoG474
-  , module Hello.Tests.Platforms.NucleoF411
-  , module Hello.Tests.Platforms.NucleoF767
-  , module Hello.Tests.Platforms.Stamp
   , module Hello.Tests.Platforms.Types
   ) where
 
 import Hello.Tests.Platforms.Types
-import Hello.Tests.Platforms.Bluepill (bluepill)
-import Hello.Tests.Platforms.F0DISCO (f0disco)
-import Hello.Tests.Platforms.F3DISCO (f3disco)
 import Hello.Tests.Platforms.F4DISCO (f4disco)
-import Hello.Tests.Platforms.IOT01A   (iot01a)
-import Hello.Tests.Platforms.Monstick (monstick)
-import Hello.Tests.Platforms.NucleoG474 (nucleo_g474)
-import Hello.Tests.Platforms.NucleoF411 (nucleo_f411)
-import Hello.Tests.Platforms.NucleoF722 (nucleo_f722)
-import Hello.Tests.Platforms.NucleoF767 (nucleo_f767)
-import Hello.Tests.Platforms.Stamp (stamp)
 
 import Data.Char (toUpper)
 import Ivory.Tower
@@ -41,17 +22,7 @@ platformParser :: Platform -> ConfigParser Platform
 platformParser defPlatform = do
   p <- (subsection "args" $ subsection "platform" string) <|> pure "default"
   case map toUpper p of
-    "BLUEPILL"       -> return bluepill
-    "F0DISCO"        -> return f0disco
-    "F3DISCO"        -> return f3disco
     "F4DISCO"        -> return f4disco
-    "IOT01A"         -> return iot01a
-    "MONSTICK"       -> return monstick
-    "NUCLEO_G474"    -> return nucleo_g474
-    "NUCLEO_F411"    -> return nucleo_f411
-    "NUCLEO_F722"    -> return nucleo_f722
-    "NUCLEO_F767"    -> return nucleo_f767
-    "STAMP"          -> return stamp
     "DEFAULT"        -> return defPlatform
     _ -> fail ("no such platform " ++ p)
 

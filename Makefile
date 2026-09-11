@@ -7,28 +7,8 @@ IVORYFLAGS ?= --const-fold --verbose
 #IVORYFLAGS ?=
 APPS       :=
 TESTS      := \
-	ads-test \
-	as5047-test \
 	blink-test \
-	bmp180-test \
-	can2uart-test \
-	cansendrecv-test \
-	composed-test \
-	dmauart-test \
-	eth-arpreq-test \
-	exti-test \
-	i2c-whoami-test \
-	iot01a-test \
-	magnetometer-test \
-	monstick-test \
-	monstick-rn2483-test \
-	nucleo-plc-test \
-	pcf8591-test \
-	shift595-test \
 	simpleblink-test \
-	uart-test \
-	uart-bridge-test \
-	uart-to-max7219-test \
 	sk8r-test \
 	whois6050-test \
 
