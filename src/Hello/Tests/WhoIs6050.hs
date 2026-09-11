@@ -30,7 +30,6 @@ app tocc toPlatform = do
 
   per <- period (Milliseconds 1000)
 
-
   monitor "i2c" $ do
     handler per "i2cPer" $ do
       reqE <- emitter req 1
