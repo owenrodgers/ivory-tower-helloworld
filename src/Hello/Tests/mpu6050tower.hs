@@ -99,7 +99,7 @@ mpu6050Tower (BackpressureTransmit i2c_request i2c_response) init_channel device
         comment "finished initializing in hmc5883l coroutine"
 
         forever $ do
-          -- _read_result <- yield -- When a message is received from i2c_response the coroutine resumes here
+          _read_result <- yield -- When a message is received from i2c_response the coroutine resumes here
                                      -- we should check if there was an i2c error
           comment "response received from periodic read"
 
