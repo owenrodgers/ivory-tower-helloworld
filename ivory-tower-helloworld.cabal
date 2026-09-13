@@ -20,6 +20,7 @@ library
                        Hello.Tests.Sk8r
                        Hello.Tests.Mpu6050Tower
                        Hello.Tests.WhoIs6050
+                       Hello.Tests.FlightTrackerTower
 
   build-depends:       base
                      , ivory

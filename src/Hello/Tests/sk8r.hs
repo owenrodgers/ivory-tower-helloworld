@@ -18,6 +18,7 @@ import Ivory.BSP.STM32.ClockConfig (ClockConfig)
 
 import Hello.Tests.Platforms
 import Hello.Tests.Mpu6050Tower
+import Hello.Tests.FlightTrackerTower
 
 {-
 Maybe use DMP black magic but there's zero documentation
@@ -34,17 +35,16 @@ landed
     orientation delta -> score
     light up some leds or something
 
-MadgwickTower ::
-  Channel
-    flight-start
-    flight-end
+FlightTracker ::
+  ChanOutput
+    start-tracking
 
   ->
   ChanOutput
     imu-reading
 
   ->
-  ChanOutput
+  ChanInput
     orientation-delta
 
   flight-start message
@@ -65,6 +65,8 @@ MadgwickTower ::
     emit (droll, dpitch, dyaw)
 -}
 
+
+
 app :: (a -> ClockConfig)
     -> (a -> Platform)
     -> Tower a ()
@@ -73,9 +75,12 @@ app tocc toPlatform = do
   (init_in, init_out) <- channel
   (i2c_channel, _ready) <- i2cTower tocc platformI2C platformI2CPins
   (BackpressureTransmit mpu_req mpu_res) <- mpu6050Tower i2c_channel init_out addr
+  (track_init_in, track_init_out) <- channel
+  deltas_out <- flightTrackerTower track_init_out mpu_res
+
   redtog <- ledToggle [platformRedLED]
   greentog <- ledToggle [platformGreenLED]
-  ms1000 <- period (Milliseconds 100)
+  ms1000 <- period (Milliseconds 10)
 
   uartTowerDeps
   (ostream, _istream) <-
@@ -86,12 +91,14 @@ app tocc toPlatform = do
       115200
       (Proxy :: Proxy UARTBuffer)
 
-  monitor "myMonitor" $ do
+  monitor "sk8r_monitor" $ do
     dbg <- state "sample_result"
+    dbgDelta <- state "debug_delta"
     mpu6050init <- stateInit "mpu6050_initialized" (ival false)
     in_flight <- stateInit "in_flight" (ival false)
+    debounce <- stateInit "sample_debound" (ival (0 :: Uint32))
 
-    handler ms1000 "tick" $ do
+    handler ms1000 "mpu_requester" $ do
       o <- emitter ostream 64
       sample_emitter <- emitter mpu_req 1
       init_emitter <- emitter init_in 1
@@ -106,35 +113,58 @@ app tocc toPlatform = do
             )
           (do
             puts o "initializing device\r\n"
+
             t <- getTime
             emitV init_emitter t
+
             store mpu6050init true
             puts o "device initialized\r\n"
           )
+
+    handler deltas_out "delta_handler" $ do
+      o <- emitter ostream 64
+
+      callback $ \delta -> do
+        refCopy dbgDelta delta
+        puts o "got an orientation delta\r\n"
 
     handler mpu_res "sample_handler" $ do
       o <- emitter ostream 64
       re <- emitter redtog 1
       ge <- emitter greentog 1
+      ste <- emitter track_init_in 1
+
       callback $ \x -> do
         refCopy dbg x
         is_in_flight <- deref in_flight
-        -- puts o "received response\r\n"
+        debounce_count <- deref debounce
         emit re x
 
         accz <- deref (x ~> az)
-        ifte_ (accz >? 1.5 .&& iNot is_in_flight)
+        ifte_ (accz >? 1.5 .&& iNot is_in_flight .&& debounce_count >? 20)
           (do 
             store in_flight true
+            store debounce 0
             emit ge x
+
+            -- tell flight tracker to start
+            t <- getTime
+            emitV ste t
+
             puts o "in flight\r\n"
             )
-          (do pure ())
-
-        ifte_ (accz <? 0.0 .&& is_in_flight)
           (do
-            store in_flight false
-            emit ge x
-            puts o "landed\r\n" 
-            )
-          (do pure ())
+            ifte_ (accz <? 0.0 .&& is_in_flight .&& debounce_count >? 20)
+              (do
+                store in_flight false
+                store debounce 0
+                emit ge x
+
+                -- tell flight tracker to stop
+                t <- getTime
+                emitV ste t
+
+                puts o "landed\r\n" 
+                )
+              (do store debounce (debounce_count + 1)))
+    
