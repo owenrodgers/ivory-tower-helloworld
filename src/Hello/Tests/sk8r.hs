@@ -65,8 +65,6 @@ FlightTracker ::
     emit (droll, dpitch, dyaw)
 -}
 
-
-
 app :: (a -> ClockConfig)
     -> (a -> Platform)
     -> Tower a ()
@@ -98,6 +96,7 @@ app tocc toPlatform = do
     in_flight <- stateInit "in_flight" (ival false)
     debounce <- stateInit "sample_debound" (ival (0 :: Uint32))
 
+    -- Ask the imu for a reading
     handler ms1000 "mpu_requester" $ do
       o <- emitter ostream 64
       sample_emitter <- emitter mpu_req 1
@@ -121,6 +120,7 @@ app tocc toPlatform = do
             puts o "device initialized\r\n"
           )
 
+    -- we got an orientation delta, score it
     handler deltas_out "delta_handler" $ do
       o <- emitter ostream 64
 
@@ -128,6 +128,7 @@ app tocc toPlatform = do
         refCopy dbgDelta delta
         puts o "got an orientation delta\r\n"
 
+    -- we got an imu reading, update in_flight logic and forward to orientation delta tracker
     handler mpu_res "sample_handler" $ do
       o <- emitter ostream 64
       re <- emitter redtog 1
@@ -167,4 +168,3 @@ app tocc toPlatform = do
                 puts o "landed\r\n" 
                 )
               (do store debounce (debounce_count + 1)))
-    

@@ -38,6 +38,9 @@ flightTrackerTower trackInit samplesOut = do
     monitor (named "flightmon") $ do
         in_flight <- stateInit (named "in_flight") (ival false)
         tracked_delta <- state (named "tracked_ori_delta")
+        {-
+        orientation <- state (named "ori")
+        -}
 
         handler trackInit (named "watchforinit") $ do
             die <- emitter deltas_in 1
@@ -56,7 +59,16 @@ flightTrackerTower trackInit samplesOut = do
                 store in_flight (iNot flying)
         
         handler samplesOut (named "samplesWatcher") $ do
+            {-
+            se <- emitter samples_in
+            -}
             callback $ \s -> do
+                {-
+                emit se imu_sample
+
+                In a callback for orientations from madgwick
+                -}
+
                 accz <- deref (s ~> az)
                 delta <- local $ istruct
                     [   droll .= ival 1.0
@@ -66,8 +78,7 @@ flightTrackerTower trackInit samplesOut = do
 
                 refCopy tracked_delta delta
             
-    pure 
-        $ deltas_out
+    pure deltas_out
     
     where
         named :: String -> String

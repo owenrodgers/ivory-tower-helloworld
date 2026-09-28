@@ -21,6 +21,7 @@ library
                        Hello.Tests.Mpu6050Tower
                        Hello.Tests.WhoIs6050
                        Hello.Tests.FlightTrackerTower
+                       Hello.Tests.MadgwickTower
 
   build-depends:       base
                      , ivory
