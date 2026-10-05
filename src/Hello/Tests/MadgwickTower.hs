@@ -227,8 +227,6 @@ buildObjectiveFunction (Quaternion w (V3 i j k)) acc = do
           (2.0 * (0.5 - i * i - j * j))
         - normalizeV3 acc)
 
--- buildJacobian :: Quaternion IFloat ->
-
 madgwickTypes :: Module
 madgwickTypes = package (named "madgwicktypes") $ do
   defStruct (Proxy :: Proxy "madgwick_imu") 
@@ -251,59 +249,31 @@ sensorFusion
     -> ChanOutput (Stored ITime)
     -> Tower e
         (ChanOutput ('Struct "madgwick_imu"))
-
 sensorFusion samplesOut initOut = do
     towerModule madgwickTypes
     towerDepends madgwickTypes
-
     (inc, orientationOut) <- channel
 
     monitor (named "sensor_fusion") $ do
-
+        estimatorAlive <- stateInit (named "initialized") (ival false)
         attitude <- madgwickMonitor
-
-        handler initOut (named "initialize") $ do
-            callback $ const $ do
-                madgwick_init attitude
 
         handler samplesOut (named "gotsample") $ do
             o <- emitter inc 1
-            callback $ \s -> do
-                madgwick_update attitude s
 
-                emit o (constRef (madgwick_state attitude))
+            callback $ \s -> do
+                isInit <- deref estimatorAlive
+                ifte_ isInit
+                  (do 
+                    madgwick_update attitude s
+                    emit o (constRef (madgwick_state attitude)) 
+                    )
+                  (do 
+                    madgwick_init attitude
+                    store estimatorAlive true
+                    )
     
     pure orientationOut
-
-
-madgwickTower 
-    -- + 6 dof parameters 
-    :: ChanOutput (Struct "imu_sample")
-    -> Tower e
-        (ChanOutput (Struct "orientation_delta"))
-
-madgwickTower samplesOut = do
-    towerModule madgwickTypes
-    towerDepends madgwickTypes
-
-    (inc, out) <- channel
-    
-    monitor (named "madgwick") $ do
-        -- ref to our madgwick_imu struct
-
-        handler samplesOut (named "handle_sample") $ do
-            o <- emitter inc 1
-            callback $ \s -> do
-
-                delta <- local $ istruct
-                    [   droll .= ival 1.0
-                    ,   dpitch .= ival 2.0
-                    ,   dyaw .= ival 3.0
-                    ]
-
-                emit o (constRef delta)
-
-    pure out
 
 named :: String -> String
 named n = n ++ "madgwicktower"
