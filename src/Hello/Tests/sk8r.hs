@@ -21,18 +21,23 @@ import Hello.Tests.Mpu6050Tower
 import Hello.Tests.FlightTrackerTower
 import Hello.Tests.MadgwickTower
 
+{-
+Organize
+imuSampleTower
+madgwickTower
+-}
 app :: (a -> ClockConfig)
     -> (a -> Platform)
     -> Tower a ()
 app tocc toPlatform = do
   Platform{..} <- fmap toPlatform getEnv
-  (i2c_channel, _ready) <- i2cTower tocc platformI2C platformI2CPins
-  (BackpressureTransmit mpu_req mpu_res) <- imuSampleTower i2c_channel
+  (i2cChannel, _ready) <- i2cTower tocc platformI2C platformI2CPins
+  (BackpressureTransmit imuRequest imuResponse) <- imuSampleTower i2cChannel
   redtog <- ledToggle [platformRedLED]
   ms1000 <- period (Milliseconds 10)
 
   (fusionInitIn, fusionInitOut) <- channel
-  attitudeOut <- sensorFusion mpu_res fusionInitOut
+  attitudeOut <- sensorFusion imuResponse fusionInitOut
 
   uartTowerDeps
   (ostream, _istream) <-
@@ -47,26 +52,27 @@ app tocc toPlatform = do
     dbg <- state "sample_result"
     att <- state "current_attitude"
 
-    -- Ask the imu for a reading
-    handler ms1000 "mpu_requester" $ do
+    -- Periodically ask the imu for a reading
+    handler ms1000 "imuRequestuester" $ do
       o <- emitter ostream 64
-      sample_emitter <- emitter mpu_req 1
+      sampleE <- emitter imuRequest 1
 
       callback $ const $ do
         -- puts o "sending request\r\n"
         t <- getTime
-        emitV sample_emitter t
+        emitV sampleE t
 
-    -- we got an imu reading
-    handler mpu_res "sample_handler" $ do
+    -- IMU reading received, publish to appropriate channels
+    handler imuResponse "sample_handler" $ do
       o <- emitter ostream 64
-      re <- emitter redtog 1
+      rE <- emitter redtog 1
 
       callback $ \x -> do
         -- puts o "received sample\r\n"
         refCopy dbg x
-        emit re x
+        emit rE x
 
+    -- Got an attitude update from the estimator.s
     handler attitudeOut "attitude_measurement" $ do
       o <- emitter ostream 64
       callback $ \ref -> do

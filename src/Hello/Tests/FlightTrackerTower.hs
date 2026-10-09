@@ -11,7 +11,6 @@ import Ivory.Tower
 
 import Hello.Tests.Mpu6050Tower (az)
 
-
 [ivory|
  struct orientation_delta
    { droll          :: Stored IFloat
